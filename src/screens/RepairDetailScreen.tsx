@@ -29,13 +29,11 @@ function toFullUrl(path: string | null | undefined): string | null {
 
 // Next statuses a technician can move to
 const TECH_TRANSITIONS: Record<string, { status: string; label: string; color: string }[]> = {
-  pending:     [{ status: 'assigned',    label: '✅ รับงาน',        color: '#3b82f6' }],
-  assigned:    [{ status: 'in_progress', label: '🔧 เริ่มซ่อม',     color: '#8b5cf6' }],
-  in_progress: [{ status: 'done',        label: '🎉 ซ่อมเสร็จ',     color: '#22c55e' }],
-  done:        [
-    { status: 'evaluate', label: '⭐ ประเมิน',          color: '#f59e0b' },
-    { status: 'close',    label: '🔩 ตัดอะไหล่/ปิดงาน', color: '#64748b' },
-  ],
+  pending:     [{ status: 'assigned',    label: '✅ รับงาน',         color: '#3b82f6' }],
+  assigned:    [{ status: 'in_progress', label: '🔧 เริ่มซ่อม',      color: '#8b5cf6' }],
+  in_progress: [{ status: 'done',        label: '🎉 ซ่อมเสร็จ',      color: '#22c55e' }],
+  done:        [{ status: 'evaluate',    label: '⭐ ประเมินความพึงพอใจ', color: '#f59e0b' }],
+  evaluated:   [{ status: 'close',       label: '🔩 ตัดอะไหล่/ปิดงาน', color: '#64748b' }],
 };
 
 export default function RepairDetailScreen() {
