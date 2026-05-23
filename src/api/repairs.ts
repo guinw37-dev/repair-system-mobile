@@ -48,7 +48,7 @@ export async function getRepairStats(params?: Record<string, string>) {
 }
 
 export async function getMyRepairs() {
-  const { data } = await api.get('/repairs/my');
+  const { data } = await api.get('/repairs', { params: { my: '1' } });
   return data as Repair[];
 }
 

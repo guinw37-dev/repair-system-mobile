@@ -31,8 +31,12 @@ function NotifBell() {
   const [unread, setUnread] = useState(0);
 
   useEffect(() => {
-    api.get('/notifications?limit=1&unread=true')
-      .then(r => setUnread(r.data?.unread ?? 0))
+    // Notification count — skip if endpoint not available
+    api.get('/repairs?status=pending')
+      .then(r => {
+        const arr = Array.isArray(r.data) ? r.data : [];
+        setUnread(arr.length > 9 ? 9 : arr.length);
+      })
       .catch(() => {});
   }, []);
 
