@@ -60,6 +60,7 @@ export default function RepairDetailScreen() {
   const [issueTypeName, setIssueTypeName] = useState('');
   const [jobDetail, setJobDetail]     = useState('');
   const [typeModal, setTypeModal]     = useState(false);
+  const [priority, setPriority]       = useState('ปกติ');
   // Spare parts / close form
   const [stockItems, setStockItems]   = useState<any[]>([]);
   const [staffList, setStaffList]     = useState<any[]>([]);
@@ -105,6 +106,7 @@ export default function RepairDetailScreen() {
     setIssueType('');
     setIssueTypeName('');
     setJobDetail('');
+    setPriority(repair?.priority === 'critical' ? 'วิกฤต' : repair?.priority === 'urgent' ? 'เร่งด่วน' : 'ปกติ');
     setCart([]);
     setPartSearch('');
     setPartQty('1');
@@ -136,7 +138,8 @@ export default function RepairDetailScreen() {
         if (partsCost) body.parts_cost = parseFloat(partsCost);
         if (nextStatus === 'assigned') {
           body.assigned_to_name = assignName || user?.name;
-          if (issueType) body.issue_type = issueType;
+          body.issue_type = priority; // priority stored as Thai string: วิกฤต/เร่งด่วน/ปกติ
+          if (issueType) body.job_code = issueType; // job type → job_code field
           if (jobDetail) body.job_detail = jobDetail;
         }
         await updateRepair(repair!.id, body);
@@ -365,6 +368,22 @@ export default function RepairDetailScreen() {
                 <TextInput style={s.modalInput} value={assignName} onChangeText={setAssignName}
                   placeholder="ชื่อช่างที่รับงาน" />
 
+                <Text style={s.inputLabel}>ความสำคัญ</Text>
+                <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
+                  {[
+                    { label: 'ปกติ',    color: '#64748b' },
+                    { label: 'เร่งด่วน', color: '#f97316' },
+                    { label: 'วิกฤต',   color: '#dc2626' },
+                  ].map(({ label, color }) => (
+                    <TouchableOpacity
+                      key={label}
+                      onPress={() => setPriority(label)}
+                      style={[s.priorityBtn, priority === label && { backgroundColor: color, borderColor: color }]}>
+                      <Text style={[s.priorityBtnTxt, priority === label && { color: '#fff' }]}>{label}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
                 <Text style={s.inputLabel}>ประเภทงาน</Text>
                 <TouchableOpacity style={s.typeSelect} onPress={() => setTypeModal(true)}>
                   <Text style={[s.typeSelectTxt, !issueTypeName && { color: '#94a3b8' }]}>
@@ -560,6 +579,11 @@ const s = StyleSheet.create({
   scoreBtn:     { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', alignItems: 'center', backgroundColor: '#f8fafc' },
   scoreBtnActive: { backgroundColor: NAVY, borderColor: NAVY },
   scoreBtnTxt:  { fontSize: 14, fontWeight: '600', color: '#334155' },
+  priorityBtn: {
+    flex: 1, paddingVertical: 9, borderRadius: 8, borderWidth: 1.5,
+    borderColor: '#e2e8f0', alignItems: 'center', backgroundColor: '#f8fafc',
+  },
+  priorityBtnTxt: { fontSize: 14, fontWeight: '700', color: '#334155' },
   typeSelect: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 8, padding: 10,
