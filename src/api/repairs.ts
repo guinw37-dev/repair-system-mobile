@@ -60,6 +60,7 @@ export const STATUS_COLOR: Record<string, string> = {
   in_progress: '#8b5cf6',
   done:        '#22c55e',
   evaluated:   '#10b981',
+  closed:      '#64748b',
   cancelled:   '#ef4444',
   evaluate:    '#f59e0b',
   close:       '#64748b',
@@ -71,6 +72,7 @@ export const STATUS_TH: Record<string, string> = {
   in_progress: 'กำลังซ่อม',
   done:        'เสร็จแล้ว',
   evaluated:   'ประเมินแล้ว',
+  closed:      'ปิดงาน',
   cancelled:   'ยกเลิก',
 };
 

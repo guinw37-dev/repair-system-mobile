@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   ActivityIndicator, Alert, TextInput, Modal, Image, FlatList,
+  KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -62,8 +63,6 @@ export default function RepairDetailScreen() {
   const [typeModal, setTypeModal]     = useState(false);
   const [priority, setPriority]       = useState('ปกติ');
   const [statusWork, setStatusWork]   = useState('');
-  const [statusWorkName, setStatusWorkName] = useState('');
-  const [workTypeModal, setWorkTypeModal] = useState(false);
   const [clearChoice, setClearChoice] = useState<'clear'|'assign'>('clear');
   // Spare parts / close form
   const [stockItems, setStockItems]   = useState<any[]>([]);
@@ -116,7 +115,6 @@ export default function RepairDetailScreen() {
     setPartQty('1');
     setPickerName(user?.name || '');
     setStatusWork('');
-    setStatusWorkName('');
     setClearChoice('clear');
     setModal(true);
   }
@@ -185,7 +183,7 @@ export default function RepairDetailScreen() {
       {/* Meta info */}
       <View style={s.card}>
         {repair.job_number && <Row icon="document-text-outline" label="เลขที่งาน" value={repair.job_number} />}
-        <Row icon="location-outline" label="สถานที่" value={[repair.building, repair.floor, repair.location].filter(Boolean).join(' · ') || '-'} />
+        <Row icon="location-outline" label="สถานที่" value={[repair.building, repair.floor].filter(Boolean).join(' · ') || '-'} />
         <Row icon="person-outline"   label="ผู้แจ้ง"  value={repair.reported_by_name || '-'} />
         {repair.telephone && <Row icon="call-outline" label="เบอร์โทร" value={repair.telephone} />}
         {repair.assigned_to_name && <Row icon="construct-outline" label="ช่างที่รับ" value={repair.assigned_to_name} />}
@@ -243,35 +241,6 @@ export default function RepairDetailScreen() {
                 <TouchableOpacity
                   style={{ paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderColor: '#f8fafc' }}
                   onPress={() => { setIssueType(item.issue_type || item.code); setIssueTypeName(item.name); setTypeModal(false); }}>
-                  <Text style={{ fontSize: 15, color: '#1e293b' }}>{item.name}</Text>
-                  {item.code ? <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{item.code}</Text> : null}
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
-
-      {/* Work type picker modal (for in_progress) */}
-      <Modal visible={workTypeModal} transparent animationType="slide">
-        <View style={s.modalOverlay}>
-          <View style={[s.modalCard, { padding: 0, paddingBottom: 0 }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderColor: '#f1f5f9' }}>
-              <Text style={s.modalTitle}>เลือกประเภทการซ่อม</Text>
-              <TouchableOpacity onPress={() => setWorkTypeModal(false)}><Ionicons name="close" size={22} color="#64748b" /></TouchableOpacity>
-            </View>
-            <FlatList
-              data={jobTypes}
-              keyExtractor={i => String(i.id)}
-              style={{ maxHeight: 400 }}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={{ paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderColor: '#f8fafc' }}
-                  onPress={() => {
-                    setStatusWork(item.status_work || item.name);
-                    setStatusWorkName(item.name);
-                    setWorkTypeModal(false);
-                  }}>
                   <Text style={{ fontSize: 15, color: '#1e293b' }}>{item.name}</Text>
                   {item.code ? <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{item.code}</Text> : null}
                 </TouchableOpacity>
@@ -392,6 +361,7 @@ export default function RepairDetailScreen() {
 
       {/* Update modal */}
       <Modal visible={modal} transparent animationType="slide">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <View style={s.modalOverlay}>
           <View style={s.modalCard}>
             <Text style={s.modalTitle}>
@@ -401,6 +371,8 @@ export default function RepairDetailScreen() {
                : nextStatus === 'evaluate'    ? 'ประเมินความพึงพอใจ'
                : 'ตัดอะไหล่ / ปิดงาน'}
             </Text>
+
+            <ScrollView style={{ maxHeight: 460 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
             {nextStatus === 'assigned' ? (
               <>
@@ -597,6 +569,8 @@ export default function RepairDetailScreen() {
               </>
             )}
 
+            </ScrollView>
+
             <View style={s.modalBtns}>
               <TouchableOpacity style={s.cancelBtn} onPress={() => setModal(false)}>
                 <Text style={s.cancelTxt}>ยกเลิก</Text>
@@ -607,6 +581,7 @@ export default function RepairDetailScreen() {
             </View>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
     </ScrollView>
   );
