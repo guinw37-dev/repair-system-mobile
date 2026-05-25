@@ -132,7 +132,7 @@ export default function AppNavigator() {
   if (loading) return null;
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator key={user ? 'authed' : 'guest'} screenOptions={{ headerShown: false }}>
       {!user
         ? <Stack.Screen name="Login" component={LoginScreen} />
         : <Stack.Screen name="App"   component={AuthedStack} />
