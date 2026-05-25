@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../context/AuthContext';
 import { registerPushToken } from '../api/notifications';
 import { api } from '../api/client';
+import { getAlarmDue, ackAlarm, getTodayBKK } from '../api/operation';
 
 import LoginScreen          from '../screens/LoginScreen';
 import HomeScreen           from '../screens/HomeScreen';
@@ -99,12 +100,46 @@ function AuthedStack() {
     if (user) registerPushToken();
   }, [user]);
 
-  // Handle notification tap → navigate to repair
+  // ── Operation alarm polling (foreground) ─────────────────────────
+  const ackedRef = useRef<Set<number>>(new Set());
+  useEffect(() => {
+    if (!user) return;
+    // Reset acked set each new day
+    let lastDay = getTodayBKK();
+
+    const poll = async () => {
+      const today = getTodayBKK();
+      if (today !== lastDay) { ackedRef.current.clear(); lastDay = today; }
+      const tasks = await getAlarmDue();
+      for (const t of tasks) {
+        if (ackedRef.current.has(t.id)) continue;
+        ackedRef.current.add(t.id);
+        const shiftLabel: Record<string,string> = { morning:'กะเช้า', afternoon:'กะบ่าย', night:'กะดึก' };
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: `⏰ Operation Alarm — ${(t.alarm_time||'').slice(0,5)}`,
+            body:  `${t.name}  [${shiftLabel[t.shift] ?? t.shift}]`,
+            sound: 'default',
+            data:  { type: 'operation_alarm', taskId: t.id },
+          },
+          trigger: null,  // fire immediately
+        });
+      }
+    };
+
+    poll();
+    const interval = setInterval(poll, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Handle notification tap → navigate to correct screen
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener(response => {
       const data = response.notification.request.content.data as any;
       if (data?.repairId) {
         navRef.current?.navigate('RepairDetail', { id: data.repairId });
+      } else if (data?.type === 'operation_alarm') {
+        navRef.current?.navigate('Main', { screen: 'Operation' });
       }
     });
     return () => sub.remove();
