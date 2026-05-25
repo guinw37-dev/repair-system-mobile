@@ -544,15 +544,23 @@ export default function RepairDetailScreen() {
               </>
             ) : nextStatus === 'in_progress' ? (
               <>
-                <Text style={s.inputLabel}>ประเภทการซ่อม</Text>
-                <TouchableOpacity style={s.typeSelect} onPress={() => setWorkTypeModal(true)}>
-                  <Text style={[s.typeSelectTxt, !statusWorkName && { color: '#94a3b8' }]}>
-                    {statusWorkName || '- เลือกประเภทการซ่อม -'}
-                  </Text>
-                  <Ionicons name="chevron-down" size={16} color="#94a3b8" />
-                </TouchableOpacity>
+                <Text style={s.inputLabel}>Status Work</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
+                  {['Start Working', 'Pending on Contractor', 'Hold'].map(opt => (
+                    <TouchableOpacity
+                      key={opt}
+                      onPress={() => setStatusWork(opt)}
+                      style={[
+                        s.scoreBtn,
+                        { flex: 0, paddingHorizontal: 14 },
+                        statusWork === opt && s.scoreBtnActive,
+                      ]}>
+                      <Text style={[s.scoreBtnTxt, statusWork === opt && { color: '#fff' }]}>{opt}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
 
-                <Text style={s.inputLabel}>บันทึก / รายละเอียดงาน</Text>
+                <Text style={s.inputLabel}>Work Description</Text>
                 <TextInput style={[s.modalInput, { minHeight: 80 }]} value={notes} onChangeText={setNotes}
                   multiline numberOfLines={3} placeholder="อธิบายงานที่กำลังดำเนินการ..." textAlignVertical="top" />
               </>
