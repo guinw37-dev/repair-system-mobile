@@ -2,6 +2,7 @@ import { api } from './client';
 
 export interface Repair {
   id: number;
+  job_number?: string;
   title: string;
   description: string;
   status: string;
@@ -11,6 +12,7 @@ export interface Repair {
   building: string;
   floor: string;
   reported_by_name: string;
+  telephone?: string;
   assigned_to_name?: string;
   performed_by?: string;
   created_at: string;

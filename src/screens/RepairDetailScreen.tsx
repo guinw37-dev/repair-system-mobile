@@ -184,8 +184,10 @@ export default function RepairDetailScreen() {
 
       {/* Meta info */}
       <View style={s.card}>
+        {repair.job_number && <Row icon="document-text-outline" label="เลขที่งาน" value={repair.job_number} />}
         <Row icon="location-outline" label="สถานที่" value={[repair.building, repair.floor, repair.location].filter(Boolean).join(' · ') || '-'} />
         <Row icon="person-outline"   label="ผู้แจ้ง"  value={repair.reported_by_name || '-'} />
+        {repair.telephone && <Row icon="call-outline" label="เบอร์โทร" value={repair.telephone} />}
         {repair.assigned_to_name && <Row icon="construct-outline" label="ช่างที่รับ" value={repair.assigned_to_name} />}
         <Row icon="time-outline"    label="วันที่แจ้ง" value={new Date(repair.created_at).toLocaleString('th-TH')} />
         {repair.closed_at && <Row icon="checkmark-circle-outline" label="วันที่เสร็จ" value={new Date(repair.closed_at).toLocaleString('th-TH')} />}
