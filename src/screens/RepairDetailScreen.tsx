@@ -64,6 +64,7 @@ export default function RepairDetailScreen() {
   const [statusWork, setStatusWork]   = useState('');
   const [statusWorkName, setStatusWorkName] = useState('');
   const [workTypeModal, setWorkTypeModal] = useState(false);
+  const [clearChoice, setClearChoice] = useState<'clear'|'assign'>('clear');
   // Spare parts / close form
   const [stockItems, setStockItems]   = useState<any[]>([]);
   const [staffList, setStaffList]     = useState<any[]>([]);
@@ -116,6 +117,7 @@ export default function RepairDetailScreen() {
     setPickerName(user?.name || '');
     setStatusWork('');
     setStatusWorkName('');
+    setClearChoice('clear');
     setModal(true);
   }
 
@@ -142,6 +144,7 @@ export default function RepairDetailScreen() {
         if (notes) body.notes = notes;
         if (partsCost) body.parts_cost = parseFloat(partsCost);
         if (nextStatus === 'in_progress' && statusWork) body.status_work = statusWork;
+        if (nextStatus === 'done') body.clear_choice = clearChoice;
         if (nextStatus === 'assigned') {
           body.assigned_to_name = assignName || user?.name;
           body.issue_type = priority; // priority stored as Thai string: วิกฤต/เร่งด่วน/ปกติ
@@ -566,7 +569,21 @@ export default function RepairDetailScreen() {
               </>
             ) : nextStatus === 'done' ? (
               <>
-                <Text style={s.inputLabel}>สรุปผลการซ่อม <Text style={{ color: '#94a3b8', fontWeight: '400' }}>(ไม่บังคับ)</Text></Text>
+                <Text style={s.inputLabel}>Clear</Text>
+                <View style={{ flexDirection: 'row', gap: 10, marginBottom: 14 }}>
+                  <TouchableOpacity
+                    onPress={() => setClearChoice('clear')}
+                    style={[s.clearChoiceBtn, clearChoice === 'clear' && { backgroundColor: '#22c55e', borderColor: '#22c55e' }]}>
+                    <Text style={[s.clearChoiceTxt, clearChoice === 'clear' && { color: '#fff' }]}>✅ Clear (ปิดงานซ่อม)</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setClearChoice('assign')}
+                    style={[s.clearChoiceBtn, clearChoice === 'assign' && { backgroundColor: '#3b82f6', borderColor: '#3b82f6' }]}>
+                    <Text style={[s.clearChoiceTxt, clearChoice === 'assign' && { color: '#fff' }]}>🔄 Assign (ส่งงานต่อ)</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={s.inputLabel}>Clear Description</Text>
                 <TextInput style={[s.modalInput, { minHeight: 100 }]} value={notes} onChangeText={setNotes}
                   multiline numberOfLines={4} placeholder="สรุปสิ่งที่ซ่อม / วิธีแก้ไข..." textAlignVertical="top" />
               </>
@@ -642,6 +659,11 @@ const s = StyleSheet.create({
   scoreBtn:     { flex: 1, paddingVertical: 8, borderRadius: 8, borderWidth: 1, borderColor: '#e2e8f0', alignItems: 'center', backgroundColor: '#f8fafc' },
   scoreBtnActive: { backgroundColor: NAVY, borderColor: NAVY },
   scoreBtnTxt:  { fontSize: 14, fontWeight: '600', color: '#334155' },
+  clearChoiceBtn: {
+    flex: 1, paddingVertical: 10, paddingHorizontal: 8, borderRadius: 8,
+    borderWidth: 1.5, borderColor: '#e2e8f0', alignItems: 'center', backgroundColor: '#f8fafc',
+  },
+  clearChoiceTxt: { fontSize: 13, fontWeight: '700', color: '#334155', textAlign: 'center' },
   priorityBtn: {
     flex: 1, paddingVertical: 9, borderRadius: 8, borderWidth: 1.5,
     borderColor: '#e2e8f0', alignItems: 'center', backgroundColor: '#f8fafc',
