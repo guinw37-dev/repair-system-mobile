@@ -61,6 +61,9 @@ export default function RepairDetailScreen() {
   const [jobDetail, setJobDetail]     = useState('');
   const [typeModal, setTypeModal]     = useState(false);
   const [priority, setPriority]       = useState('ปกติ');
+  const [statusWork, setStatusWork]   = useState('');
+  const [statusWorkName, setStatusWorkName] = useState('');
+  const [workTypeModal, setWorkTypeModal] = useState(false);
   // Spare parts / close form
   const [stockItems, setStockItems]   = useState<any[]>([]);
   const [staffList, setStaffList]     = useState<any[]>([]);
@@ -111,6 +114,8 @@ export default function RepairDetailScreen() {
     setPartSearch('');
     setPartQty('1');
     setPickerName(user?.name || '');
+    setStatusWork('');
+    setStatusWorkName('');
     setModal(true);
   }
 
@@ -136,6 +141,7 @@ export default function RepairDetailScreen() {
         const body: Record<string, unknown> = { status: nextStatus };
         if (notes) body.notes = notes;
         if (partsCost) body.parts_cost = parseFloat(partsCost);
+        if (nextStatus === 'in_progress' && statusWork) body.status_work = statusWork;
         if (nextStatus === 'assigned') {
           body.assigned_to_name = assignName || user?.name;
           body.issue_type = priority; // priority stored as Thai string: วิกฤต/เร่งด่วน/ปกติ
@@ -232,6 +238,35 @@ export default function RepairDetailScreen() {
                 <TouchableOpacity
                   style={{ paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderColor: '#f8fafc' }}
                   onPress={() => { setIssueType(item.issue_type || item.code); setIssueTypeName(item.name); setTypeModal(false); }}>
+                  <Text style={{ fontSize: 15, color: '#1e293b' }}>{item.name}</Text>
+                  {item.code ? <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{item.code}</Text> : null}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
+      {/* Work type picker modal (for in_progress) */}
+      <Modal visible={workTypeModal} transparent animationType="slide">
+        <View style={s.modalOverlay}>
+          <View style={[s.modalCard, { padding: 0, paddingBottom: 0 }]}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderColor: '#f1f5f9' }}>
+              <Text style={s.modalTitle}>เลือกประเภทการซ่อม</Text>
+              <TouchableOpacity onPress={() => setWorkTypeModal(false)}><Ionicons name="close" size={22} color="#64748b" /></TouchableOpacity>
+            </View>
+            <FlatList
+              data={jobTypes}
+              keyExtractor={i => String(i.id)}
+              style={{ maxHeight: 400 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={{ paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderColor: '#f8fafc' }}
+                  onPress={() => {
+                    setStatusWork(item.status_work || item.name);
+                    setStatusWorkName(item.name);
+                    setWorkTypeModal(false);
+                  }}>
                   <Text style={{ fontSize: 15, color: '#1e293b' }}>{item.name}</Text>
                   {item.code ? <Text style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{item.code}</Text> : null}
                 </TouchableOpacity>
@@ -506,6 +541,26 @@ export default function RepairDetailScreen() {
                 <Text style={s.inputLabel}>หมายเหตุ</Text>
                 <TextInput style={[s.modalInput, { minHeight: 60 }]} value={notes} onChangeText={setNotes}
                   multiline numberOfLines={2} placeholder="ระบุรายละเอียด..." textAlignVertical="top" />
+              </>
+            ) : nextStatus === 'in_progress' ? (
+              <>
+                <Text style={s.inputLabel}>ประเภทการซ่อม</Text>
+                <TouchableOpacity style={s.typeSelect} onPress={() => setWorkTypeModal(true)}>
+                  <Text style={[s.typeSelectTxt, !statusWorkName && { color: '#94a3b8' }]}>
+                    {statusWorkName || '- เลือกประเภทการซ่อม -'}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color="#94a3b8" />
+                </TouchableOpacity>
+
+                <Text style={s.inputLabel}>บันทึก / รายละเอียดงาน</Text>
+                <TextInput style={[s.modalInput, { minHeight: 80 }]} value={notes} onChangeText={setNotes}
+                  multiline numberOfLines={3} placeholder="อธิบายงานที่กำลังดำเนินการ..." textAlignVertical="top" />
+              </>
+            ) : nextStatus === 'done' ? (
+              <>
+                <Text style={s.inputLabel}>สรุปผลการซ่อม <Text style={{ color: '#94a3b8', fontWeight: '400' }}>(ไม่บังคับ)</Text></Text>
+                <TextInput style={[s.modalInput, { minHeight: 100 }]} value={notes} onChangeText={setNotes}
+                  multiline numberOfLines={4} placeholder="สรุปสิ่งที่ซ่อม / วิธีแก้ไข..." textAlignVertical="top" />
               </>
             ) : (
               <>
