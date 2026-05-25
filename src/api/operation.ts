@@ -76,7 +76,22 @@ export const SHIFT_LABEL: Record<string, string> = {
 export async function getAlarmLog(date: string, shift: string): Promise<ShiftLog | null> {
   try {
     const r = await api.get(`/alarm/log?date=${date}&shift=${shift}`);
-    return r.data;
+    const { log, results } = r.data;
+    if (!log) return null;
+    return {
+      ...log,
+      tasks: (results || []).map((res: any) => ({
+        task_id:     res.task_id,
+        result_id:   res.id,
+        name:        res.name,
+        alarm_time:  res.alarm_time,
+        system_code: res.system_code,
+        status:      res.status,
+        note:        res.note,
+        done_by:     res.done_by,
+        done_at:     res.done_at,
+      })),
+    };
   } catch { return null; }
 }
 
