@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
   ActivityIndicator, KeyboardAvoidingView, Platform, Alert,
-  FlatList, Modal,
+  FlatList, Modal, Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
@@ -54,6 +54,7 @@ export default function LoginScreen() {
   const [loading, setLoading]     = useState(false);
 
   async function handleLogin() {
+    Keyboard.dismiss();
     if (!hospital) { Alert.alert('กรุณาเลือกหน่วยงาน'); return; }
     if (!username || !password) { Alert.alert('กรุณากรอก Username และ Password'); return; }
     setLoading(true);
@@ -62,9 +63,9 @@ export default function LoginScreen() {
       await setApiBase(base);
       const { token, user } = await login({ username, password });
       await signIn(token, user);
+      // ไม่ต้อง setLoading(false) — component unmount หลัง signIn สำเร็จ
     } catch (e: any) {
       Alert.alert('เข้าสู่ระบบไม่สำเร็จ', e?.response?.data?.message || e.message);
-    } finally {
       setLoading(false);
     }
   }
