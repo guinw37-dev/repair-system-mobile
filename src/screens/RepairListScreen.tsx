@@ -12,11 +12,22 @@ const STATUS_COLOR: Record<string, string> = {
   assigned:    '#3b82f6',
   in_progress: '#8b5cf6',
   done:        '#22c55e',
+  evaluate:    '#f59e0b',
+  evaluated:   '#10b981',
+  close:       '#64748b',
+  closed:      '#64748b',
   cancelled:   '#ef4444',
 };
 const STATUS_TH: Record<string, string> = {
-  pending: 'รอรับ', assigned: 'รับแล้ว',
-  in_progress: 'กำลังซ่อม', done: 'เสร็จ', cancelled: 'ยกเลิก',
+  pending:     'รอรับ',
+  assigned:    'รับแล้ว',
+  in_progress: 'กำลังซ่อม',
+  done:        'เสร็จ',
+  evaluate:    'รอประเมิน',
+  evaluated:   'ประเมินแล้ว',
+  close:       'รอปิดงาน',
+  closed:      'ปิดแล้ว',
+  cancelled:   'ยกเลิก',
 };
 const PRIORITY_COLOR: Record<string, string> = {
   critical: '#dc2626', urgent: '#f97316', standard: '#64748b',
@@ -53,7 +64,7 @@ export default function RepairListScreen() {
     ));
   }, [search, items]);
 
-  const STATUS_TABS = ['', 'pending', 'assigned', 'in_progress', 'done'];
+  const STATUS_TABS = ['', 'pending', 'assigned', 'in_progress', 'done', 'closed'];
 
   return (
     <View style={s.container}>

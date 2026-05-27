@@ -71,7 +71,9 @@ export const STATUS_TH: Record<string, string> = {
   assigned:    'รับงานแล้ว',
   in_progress: 'กำลังซ่อม',
   done:        'เสร็จแล้ว',
+  evaluate:    'รอประเมิน',
   evaluated:   'ประเมินแล้ว',
+  close:       'รอปิดงาน',
   closed:      'ปิดงาน',
   cancelled:   'ยกเลิก',
 };
