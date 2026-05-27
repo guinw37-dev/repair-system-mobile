@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, TextInput, StyleSheet, ScrollView,
-  TouchableOpacity, ActivityIndicator, Alert, Modal, FlatList,
+  TouchableOpacity, ActivityIndicator, Alert, Modal, FlatList, Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { createRepair } from '../api/repairs';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../api/client';
@@ -56,6 +58,7 @@ export default function RepairCreateScreen() {
   const [department, setDept]     = useState('');
   const [desc, setDesc]           = useState('');
   const [telephone, setTel]       = useState('');
+  const [imageUri, setImageUri]   = useState<string | null>(null);
   const [loading, setLoading]     = useState(false);
   const [initLoading, setInitLoading] = useState(true);
 
@@ -84,6 +87,24 @@ export default function RepairCreateScreen() {
     setDept('');
   }
 
+  async function pickImage() {
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) { Alert.alert('ต้องการสิทธิ์เข้าถึงรูปภาพ'); return; }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.7,
+      allowsEditing: false,
+    });
+    if (!res.canceled) setImageUri(res.assets[0].uri);
+  }
+
+  async function takePhoto() {
+    const perm = await ImagePicker.requestCameraPermissionsAsync();
+    if (!perm.granted) { Alert.alert('ต้องการสิทธิ์เข้าถึงกล้อง'); return; }
+    const res = await ImagePicker.launchCameraAsync({ quality: 0.7, allowsEditing: false });
+    if (!res.canceled) setImageUri(res.assets[0].uri);
+  }
+
   async function handleSubmit() {
     if (!building) { Alert.alert('กรุณาเลือกอาคาร'); return; }
     if (!department) { Alert.alert('กรุณาเลือกแผนก'); return; }
@@ -91,14 +112,26 @@ export default function RepairCreateScreen() {
 
     setLoading(true);
     try {
-      await createRepair({
+      const body: Record<string, any> = {
         title: desc.trim(),
         building,
         floor,
         category: department,
         reported_by_name: user?.name || user?.username || 'ผู้แจ้ง',
         telephone: telephone.trim(),
-      });
+      };
+
+      // Attach image as base64 if selected
+      if (imageUri) {
+        const base64 = await FileSystem.readAsStringAsync(imageUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        const ext = imageUri.split('.').pop()?.toLowerCase() || 'jpg';
+        body.fileBase64 = base64;
+        body.fileName   = `repair_photo.${ext}`;
+      }
+
+      await createRepair(body);
       Alert.alert('แจ้งซ่อมสำเร็จ', '', [{ text: 'OK', onPress: () => nav.goBack() }]);
     } catch (e: any) {
       Alert.alert('ไม่สำเร็จ', e?.response?.data?.error || e.message);
@@ -151,6 +184,27 @@ export default function RepairCreateScreen() {
         placeholder="กรอกเบอร์โทร" keyboardType="phone-pad"
       />
 
+      {/* รูปภาพ */}
+      <Text style={s.label}>7. รูปภาพประกอบ (ถ้ามี)</Text>
+      <View style={s.imgRow}>
+        <TouchableOpacity style={s.imgBtn} onPress={pickImage}>
+          <Ionicons name="image-outline" size={20} color={NAVY} />
+          <Text style={s.imgBtnTxt}>เลือกรูป</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={s.imgBtn} onPress={takePhoto}>
+          <Ionicons name="camera-outline" size={20} color={NAVY} />
+          <Text style={s.imgBtnTxt}>ถ่ายรูป</Text>
+        </TouchableOpacity>
+      </View>
+      {imageUri && (
+        <View style={s.imgPreviewBox}>
+          <Image source={{ uri: imageUri }} style={s.imgPreview} resizeMode="cover" />
+          <TouchableOpacity style={s.imgRemove} onPress={() => setImageUri(null)}>
+            <Ionicons name="close-circle" size={24} color="#ef4444" />
+          </TouchableOpacity>
+        </View>
+      )}
+
       <TouchableOpacity style={s.submitBtn} onPress={handleSubmit} disabled={loading}>
         {loading ? <ActivityIndicator color="#fff" /> : <Text style={s.submitTxt}>📤 แจ้งซ่อม</Text>}
       </TouchableOpacity>
@@ -195,6 +249,19 @@ const s = StyleSheet.create({
   textarea:    { height: 100 },
   readOnly:    { justifyContent: 'center' },
   readOnlyTxt: { fontSize: 14, color: '#64748b' },
+  imgRow:       { flexDirection: 'row', gap: 10 },
+  imgBtn: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: '#fff', borderWidth: 1, borderColor: '#e2e8f0',
+    borderRadius: 8, padding: 12,
+  },
+  imgBtnTxt:    { fontSize: 14, color: NAVY, fontWeight: '600' },
+  imgPreviewBox:{ marginTop: 10, position: 'relative' },
+  imgPreview:   { width: '100%', height: 180, borderRadius: 10 },
+  imgRemove: {
+    position: 'absolute', top: 6, right: 6,
+    backgroundColor: '#fff', borderRadius: 12,
+  },
   submitBtn: {
     backgroundColor: NAVY, borderRadius: 10,
     padding: 16, alignItems: 'center', marginTop: 24,

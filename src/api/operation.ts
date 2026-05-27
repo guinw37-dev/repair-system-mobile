@@ -112,3 +112,12 @@ export async function getAlarmDue(): Promise<AlarmTask[]> {
 export async function ackAlarm(task_id: number, date: string): Promise<void> {
   await api.post('/alarm/ack', { task_id, date });
 }
+
+export async function updateTaskResult(
+  resultId: number,
+  status: AlarmStatus,
+  note: string,
+  done_by: string,
+): Promise<void> {
+  await api.put(`/operation/alarm/result/${resultId}`, { status, note, done_by });
+}
